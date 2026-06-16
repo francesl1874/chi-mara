@@ -371,6 +371,38 @@
     text-decoration-color: var(--prep);
   }
 
+  .day-note-input {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-style: normal;
+    font-size: 12px;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed var(--border);
+    padding: 3px 0;
+    outline: none;
+    text-decoration: none;
+  }
+
+  .day-note-input::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.55;
+  }
+
+  .day-note-input:focus {
+    border-bottom-color: var(--accent);
+    border-bottom-style: solid;
+  }
+
+  .day-row.completed .day-note-input {
+    text-decoration: none;
+    opacity: 1;
+  }
+
   .day-row.completed .day-label {
     opacity: 0.4;
   }
@@ -538,7 +570,7 @@ function saveState(state) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
 }
 
-// state shape: { "w1": { order: [0,1,2,3,4,5,6], done: [false,...] }, ... }
+// state shape: { "w1": { order: [0,1,2,3,4,5,6], done: [false,...], notes: ["",...] }, ... }
 let appState = loadState();
 
 function getWeekState(weekIdx, dayCount) {
@@ -546,10 +578,21 @@ function getWeekState(weekIdx, dayCount) {
   if (!appState[key]) {
     appState[key] = {
       order: Array.from({length: dayCount}, (_, i) => i),
-      done: Array(dayCount).fill(false)
+      done: Array(dayCount).fill(false),
+      notes: Array(dayCount).fill('')
     };
   }
+  // Migrate state saved before notes existed
+  if (!appState[key].notes) appState[key].notes = Array(dayCount).fill('');
   return appState[key];
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -839,6 +882,11 @@ function renderWeek(weekIdx) {
     const dDate = dayDate(week.num, orderPos); // date always from position
     const isDone = ws.done[dayDataIdx];
     const tagHtml = d.tag ? tagMap[d.tag] : '';
+    const isOff = d.type === 'off';
+    const noteVal = ws.notes[dayDataIdx] || '';
+    const noteHtml = isOff
+      ? `<input type="text" class="day-note-input" placeholder="＋ Add a note…" value="${escapeHtml(noteVal)}" data-day-idx="${dayDataIdx}">`
+      : '';
 
     const row = document.createElement('div');
     row.className = `day-row${isDone ? ' completed' : ''}${isToday(dDate) ? ' today' : ''}`;
@@ -852,8 +900,24 @@ function renderWeek(weekIdx) {
       <div class="day-check">
         <button class="check-btn${isDone ? ' done' : ''}" aria-label="Mark complete" data-day-idx="${dayDataIdx}"></button>
       </div>
-      <div class="day-workout ${d.type === 'off' ? 'off' : ''} ${d.type === 'key' ? 'key' : ''}">${tagHtml}${d.workout}</div>
+      <div class="day-workout ${d.type === 'off' ? 'off' : ''} ${d.type === 'key' ? 'key' : ''}">${tagHtml}${d.workout}${noteHtml}</div>
     `;
+
+    // Note input for off / cross / strength days
+    const noteInput = row.querySelector('.day-note-input');
+    if (noteInput) {
+      noteInput.addEventListener('change', (e) => {
+        appState[`w${weekIdx}`].notes[dayDataIdx] = e.target.value;
+        saveState(appState);
+      });
+      // Enter saves and blurs
+      noteInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); noteInput.blur(); }
+      });
+      // Let the field be clicked/selected without starting a row drag
+      noteInput.addEventListener('focus', () => { row.draggable = false; });
+      noteInput.addEventListener('blur', () => { row.draggable = true; });
+    }
 
     // Check off
     row.querySelector('.check-btn').addEventListener('click', (e) => {
@@ -916,6 +980,11 @@ function renderWeek(weekIdx) {
       const srcDone = appState[srcKey].done[srcWorkout];
       appState[srcKey].done[srcWorkout] = appState[dstKey].done[dstWorkout];
       appState[dstKey].done[dstWorkout] = srcDone;
+
+      // Swap notes so they travel with the workout too
+      const srcNote = appState[srcKey].notes[srcWorkout];
+      appState[srcKey].notes[srcWorkout] = appState[dstKey].notes[dstWorkout];
+      appState[dstKey].notes[dstWorkout] = srcNote;
 
       saveState(appState);
       renderWeek(srcWeekIdx);
