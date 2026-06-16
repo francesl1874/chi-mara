@@ -461,7 +461,7 @@
 <div class="header">
   <div class="header-eyebrow">BAA Level 2 · Chicago Adapted</div>
   <h1>Chicago Marathon<br>Training Plan</h1>
-  <div class="header-sub">Jun 16 – Oct 11, 2026 &nbsp;·&nbsp; Goal: 3:30</div>
+  <div class="header-sub">Jun 15 – Oct 11, 2026 &nbsp;·&nbsp; Goal: 3:30</div>
 </div>
 
 <div class="stats">
@@ -802,7 +802,7 @@ const container = document.getElementById('weeks');
 // ── Drag state ────────────────────────────────────────────────────────────────
 let dragSrc = null; // { weekIdx, orderIdx }
 
-const PLAN_START = new Date(2026, 5, 16); // Mon Jun 16, 2026 (Mon = position 0)
+const PLAN_START = new Date(2026, 5, 15); // Mon Jun 15, 2026 (Mon = position 0)
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function dayDate(weekNum, orderPos) {
@@ -813,6 +813,10 @@ function dayDate(weekNum, orderPos) {
 
 function fmtDate(d) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+function weekRange(weekNum) {
+  return `${fmtDate(dayDate(weekNum, 0))}–${fmtDate(dayDate(weekNum, 6))}`;
 }
 
 function isToday(d) {
@@ -938,7 +942,7 @@ weeks.forEach((week, i) => {
         <div class="week-phase-dot ${dotColors[week.phase] || ''}"></div>
         <div>
           <div class="week-title">${week.label}</div>
-          <div class="week-date">${week.dates}</div>
+          <div class="week-date">${weekRange(week.num)}</div>
         </div>
       </div>
       <div class="chevron">▼</div>
