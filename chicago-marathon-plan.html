@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicago Marathon Training Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --ink: #1A1A1A;
+    --ink-soft: #6B6B6B;
+    --accent: #C84B2F;
+    --accent-light: #F5E8E4;
+    --prep: #4A7C59;
+    --prep-light: #E8F2EC;
+    --build: #2B5F8A;
+    --build-light: #E5EEF6;
+    --specific: #7B4EA6;
+    --specific-light: #F0EAF7;
+    --taper: #C84B2F;
+    --taper-light: #F5E8E4;
+    --off: #E8E6E0;
+    --border: #E2DDD6;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: white;
+    padding: 40px 24px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::after {
+    content: '26.2';
+    position: absolute;
+    right: -10px;
+    top: -20px;
+    font-family: var(--mono);
+    font-size: 120px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.05);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .header-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .header-sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+  }
+
+  /* STATS BAR */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--accent);
+    color: white;
+  }
+
+  .stat {
+    padding: 14px 16px;
+    border-right: 1px solid rgba(255,255,255,0.2);
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 3px;
+  }
+
+  .stat-value {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* PACE CARD */
+  .pace-section {
+    padding: 20px 16px 0;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .pace-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pace-card {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+  }
+
+  .pace-type {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .pace-time {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .pace-card.mp { border-left: 3px solid var(--accent); }
+  .pace-card.hmp { border-left: 3px solid var(--specific); }
+  .pace-card.interval { border-left: 3px solid var(--build); }
+  .pace-card.easy { border-left: 3px solid var(--prep); }
+
+  /* NOTES */
+  .notes-section {
+    padding: 16px 16px 0;
+  }
+
+  .note-card {
+    background: var(--accent-light);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+
+  .note-card + .note-card {
+    margin-top: 8px;
+    background: var(--build-light);
+    border-left-color: var(--build);
+  }
+
+  /* PHASE LEGEND */
+  .legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 16px 0;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* WEEKS */
+  .weeks {
+    padding: 16px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .week-card {
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .week-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .week-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    min-width: 48px;
+  }
+
+  .week-title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .week-date {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+
+  .week-phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chevron {
+    font-size: 12px;
+    color: var(--ink-soft);
+    transition: transform 0.2s;
+  }
+
+  .week-card.open .chevron { transform: rotate(180deg); }
+
+  .week-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .week-card.open .week-body { display: block; }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 80px 20px 36px 1fr;
+    border-bottom: 1px solid var(--border);
+    min-height: 44px;
+  }
+
+  .day-row:last-child { border-bottom: none; }
+
+  .day-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 12px 10px 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 13px;
+  }
+
+  .day-workout {
+    padding: 11px 16px 11px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .day-workout.off {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  .day-workout.key {
+    font-weight: 500;
+  }
+
+  /* CHECKBOX */
+  .day-check {
+    width: 36px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 13px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .check-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    padding: 0;
+  }
+
+  .check-btn:hover { border-color: var(--prep); }
+
+  .check-btn.done {
+    background: var(--prep);
+    border-color: var(--prep);
+  }
+
+  .check-btn.done::after {
+    content: '';
+    width: 9px;
+    height: 5px;
+    border-left: 1.5px solid white;
+    border-bottom: 1.5px solid white;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  .day-row.completed .day-workout {
+    opacity: 0.4;
+    text-decoration: line-through;
+    text-decoration-color: var(--prep);
+  }
+
+  .day-row.completed .day-label {
+    opacity: 0.4;
+  }
+
+  /* DRAG AND DROP */
+  .day-row {
+    cursor: grab;
+    transition: background 0.1s, opacity 0.15s;
+  }
+
+  .day-row:active { cursor: grabbing; }
+
+  .day-row.dragging {
+    opacity: 0.35;
+    background: var(--bg);
+  }
+
+  .day-row.drag-over {
+    background: var(--build-light);
+    border-top: 2px solid var(--build);
+  }
+
+  .drag-handle {
+    width: 20px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 15px;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.2;
+    font-size: 11px;
+    cursor: grab;
+  }
+
+  .day-row:hover .drag-handle { opacity: 0.5; }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .tag-mp { background: var(--accent-light); color: var(--accent); }
+  .tag-hmp { background: var(--specific-light); color: var(--specific); }
+  .tag-interval { background: var(--build-light); color: var(--build); }
+  .tag-long { background: #FFF3E0; color: #E65100; }
+  .tag-easy { background: var(--prep-light); color: var(--prep); }
+
+  /* PHASE COLORS */
+  .phase-build .week-header { background: #F8FAFD; }
+  .phase-specific .week-header { background: #FAF7FD; }
+  .phase-taper .week-header { background: #FDF5F3; }
+
+  .phase-dot-build { background: var(--build); }
+  .phase-dot-specific { background: var(--specific); }
+  .phase-dot-taper { background: var(--taper); }
+  .phase-dot-prep { background: var(--prep); }
+
+  .race-week .week-header {
+    background: var(--ink);
+    color: white;
+  }
+  .race-week .week-num,
+  .race-week .week-date,
+  .race-week .chevron { color: rgba(255,255,255,0.5); }
+  .race-week .week-title { color: white; }
+
+  .bottom-note {
+    margin: 20px 16px 0;
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">BAA Level 2 · Chicago Adapted</div>
+  <h1>Chicago Marathon<br>Training Plan</h1>
+  <div class="header-sub">Jun 16 – Oct 11, 2026 &nbsp;·&nbsp; Goal: 3:30–3:35</div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Goal Time</div>
+    <div class="stat-value">3:30–3:35</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Weeks</div>
+    <div class="stat-value">17 Weeks</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Peak Miles</div>
+    <div class="stat-value">~45 mpw</div>
+  </div>
+</div>
+
+<div class="pace-section">
+  <div class="section-title">Target Paces</div>
+  <div class="pace-grid">
+    <div class="pace-card mp">
+      <div class="pace-type">Marathon Pace (MP)</div>
+      <div class="pace-time">8:03–8:12</div>
+    </div>
+    <div class="pace-card hmp">
+      <div class="pace-type">Half Marathon Pace (HMP)</div>
+      <div class="pace-time">7:40–7:48</div>
+    </div>
+    <div class="pace-card interval">
+      <div class="pace-type">10k Interval Pace</div>
+      <div class="pace-time">7:50–8:00</div>
+    </div>
+    <div class="pace-card easy">
+      <div class="pace-type">Easy / Aerobic</div>
+      <div class="pace-time">9:00–10:00</div>
+    </div>
+  </div>
+</div>
+
+<div class="notes-section">
+  <div class="note-card">⛰️ All hill intervals from the BAA plan have been replaced with flat speed intervals at the same distances and paces. Chicago is flat — no hill training needed.</div>
+  <div class="note-card">🌡️ July–August workouts will be hot in LA. Run quality sessions at dawn and run by effort, not pace. Don't panic if splits are slow.</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot phase-dot-build"></div> Building Phase</div>
+  <div class="legend-item"><div class="legend-dot phase-dot-specific"></div> Marathon Specific</div>
+  <div class="legend-item"><div class="legend-dot phase-dot-taper"></div> Taper</div>
+</div>
+
+<div class="weeks" id="weeks"></div>
+
+<div class="bottom-note">
+  <strong>Glossary:</strong> MP = Marathon Pace · HMP = Half Marathon Pace · Easy = conversational pace · Aerobic = 30–45 sec/mile faster than easy · Cross/Strength = pilates counts · All flat interval sessions replace original BAA hill repeats.
+</div>
+
+<script>
+// ── State persisted to localStorage ──────────────────────────────────────────
+const STORAGE_KEY = 'chicago-plan-v1';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+// state shape: { "w1": { order: [0,1,2,3,4,5,6], done: [false,...] }, ... }
+let appState = loadState();
+
+function getWeekState(weekIdx, dayCount) {
+  const key = `w${weekIdx}`;
+  if (!appState[key]) {
+    appState[key] = {
+      order: Array.from({length: dayCount}, (_, i) => i),
+      done: Array(dayCount).fill(false)
+    };
+  }
+  return appState[key];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+const weeks = [
+  {
+    num: 1, phase: "build", label: "Building Phase",
+    dates: "Jun 16–22",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8 miles: 2mi WU · 4×1k at 10k pace (2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "Cross / Strength Training", type: "off" },
+      { day: "Thu", workout: "6–7 mile Aerobic Run", type: "" },
+      { day: "Fri", workout: "Off", type: "off" },
+      { day: "Sat", workout: "12–13 miles: 2mi WU · 4×2mi at MP (2–3 min rest) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "6–8 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 2, phase: "build", label: "Building Phase",
+    dates: "Jun 23–29",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2mi WU · 6×300m flat at 10k pace (30 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "5–7 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "8 miles: 2mi WU · 4×1mi at HMP (2 min rest) · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "Off", type: "off" },
+      { day: "Sun", workout: "12–14 mile Aerobic Run", type: "" },
+    ]
+  },
+  {
+    num: 3, phase: "build", label: "Building Phase",
+    dates: "Jun 30–Jul 6",
+    days: [
+      { day: "Mon", workout: "Off", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2mi WU · 5×1k at 10k pace (2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "7 miles: 2mi WU · 2×1.5mi at HMP (3 min jog) · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "3–4 mile Easy Run", type: "" },
+      { day: "Sun", workout: "12–15 miles: 5–6mi easy · 6–7mi at MP · 1–2mi easy", type: "key", tag: "mp" },
+    ]
+  },
+  {
+    num: 4, phase: "build", label: "Building Phase",
+    dates: "Jul 7–13",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2–3mi WU · 6×300m flat at 10k pace (45 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "Cross / Strength Training", type: "off" },
+      { day: "Thu", workout: "6–8 mile Aerobic Run", type: "" },
+      { day: "Fri", workout: "Off", type: "off" },
+      { day: "Sat", workout: "13 miles: 2mi WU · 3×3mi at MP (2–3 min rest) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "8–10 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 5, phase: "build", label: "Building Phase — Recovery Week",
+    dates: "Jul 14–20",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2–3mi WU · 4×1200m at 10k pace (2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "5–7 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off", type: "off" },
+      { day: "Fri", workout: "8 miles: 2mi WU · 4mi at HMP · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "4–6 mile Easy Run", type: "" },
+      { day: "Sun", workout: "13–15 miles: 7mi easy · 8×(2 min at 10k pace, 2 min easy) · 1–2mi easy", type: "key", tag: "interval" },
+    ]
+  },
+  {
+    num: 6, phase: "build", label: "Building Phase",
+    dates: "Jul 21–27",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2–3mi WU · 6×400m flat at 10k pace (45 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "6–8 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "10 miles: 2mi WU · 3×2mi at HMP (3 min jog) · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "Off", type: "off" },
+      { day: "Sun", workout: "12–14 mile Aerobic Run", type: "" },
+    ]
+  },
+  {
+    num: 7, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Jul 28–Aug 3",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8–9 miles: 2mi WU · 5×1200m at 10k pace (2:30 rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Thu", workout: "5–7 mile Aerobic Run", type: "" },
+      { day: "Fri", workout: "Off", type: "off" },
+      { day: "Sat", workout: "15–16 miles: 2–3mi WU · 3×(3mi at MP, 1mi easy) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "4–5 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 8, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Aug 4–10",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8–10 miles: 2–3mi WU · 8×400m flat at 10k pace (45 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "6–8 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "9 miles: 2mi WU · 3mi at HMP, 3 min jog · 2mi at HMP · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "Off", type: "off" },
+      { day: "Sun", workout: "14–16 miles (flat course): 6–8mi easy · 6mi at MP · 2mi easy", type: "key", tag: "mp" },
+    ]
+  },
+  {
+    num: 9, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Aug 11–17",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8 miles: 2mi WU · 4×1mi at 10k pace (3 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off", type: "off" },
+      { day: "Fri", workout: "10 miles: 2mi WU · 2×3mi at HMP (3 min jog) · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Sun", workout: "13–16 miles: 7mi easy · 6×(3 min at HMP, 2 min easy) · 1–2mi easy", type: "key", tag: "hmp" },
+    ]
+  },
+  {
+    num: 10, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Aug 18–24",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2–3mi WU · 8×400m flat at 10k pace (45 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "Cross / Strength Training", type: "off" },
+      { day: "Thu", workout: "6–8 mile Aerobic Run", type: "" },
+      { day: "Fri", workout: "5 mile Aerobic Run", type: "" },
+      { day: "Sat", workout: "14 miles: 2mi WU · 10mi at MP (start slower, finish faster) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "7 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 11, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Aug 25–31",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8 miles: 2mi WU · 4×1mi at 10k pace (3 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "3–4 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off", type: "off" },
+      { day: "Fri", workout: "7 miles: 2mi WU · 2×2mi at HMP (2 min rest) · 1mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "3–4 mile Easy Run", type: "" },
+      { day: "Sun", workout: "16–19 miles (flat): 8–9mi easy · 6–8mi at MP · 2mi easy", type: "key", tag: "mp" },
+    ]
+  },
+  {
+    num: 12, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Sep 1–7",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8–10 miles: 2–3mi WU · 2×(800m flat at HMP, 800m at MP), 2 min rest · 4×400m at 10k pace (45 sec rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "Cross / Strength Training", type: "off" },
+      { day: "Thu", workout: "6–8 mile Aerobic Run", type: "" },
+      { day: "Fri", workout: "Off", type: "off" },
+      { day: "Sat", workout: "14 miles: 2mi WU · 2×5mi at MP (5 min jog) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "8–10 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 13, phase: "specific", label: "Marathon Specific Phase — Peak Week",
+    dates: "Sep 8–14",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8 miles: 2mi WU · 2×(2k at HMP, 1k at 10k pace, 2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off", type: "off" },
+      { day: "Fri", workout: "10 miles: 2mi WU · 6mi cutdown at MP (increase pace every 2mi) · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sat", workout: "4–5 mile Easy Run", type: "" },
+      { day: "Sun", workout: "11–13 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 14, phase: "specific", label: "Marathon Specific Phase — Peak Week",
+    dates: "Sep 15–21",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8–10 miles: 2–3mi WU · 4×(800m flat at HMP, 800m at MP, 2 min rest) · 2–3mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "6–8 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "9 miles: 2mi WU · 4–5mi tempo at HMP · 1–2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "Off", type: "off" },
+      { day: "Sun", workout: "18–20 miles (flat): 8–9mi easy · 8–9mi at MP · 2mi easy", type: "key", tag: "mp" },
+    ]
+  },
+  {
+    num: 15, phase: "specific", label: "Marathon Specific Phase",
+    dates: "Sep 22–28",
+    days: [
+      { day: "Mon", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Tue", workout: "8 miles: 2mi WU · 2×(2k at HMP, 1k at 10k pace, 2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "6–8 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "6–8 mile Aerobic Run", type: "" },
+      { day: "Sat", workout: "14–15 miles: 2mi WU · 10–11mi MP Tempo · 2mi WD", type: "key", tag: "mp" },
+      { day: "Sun", workout: "Off", type: "off" },
+    ]
+  },
+  {
+    num: 16, phase: "taper", label: "Taper — Week 1",
+    dates: "Sep 29–Oct 5",
+    days: [
+      { day: "Mon", workout: "Off", type: "off" },
+      { day: "Tue", workout: "7–8 miles: 2mi WU · 5×1k at 10k pace (2 min rest) · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "4–6 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off or Cross / Strength Training", type: "off" },
+      { day: "Fri", workout: "8 miles: 2mi WU · 2×(2mi at HMP, 1mi easy) · 2mi WD", type: "key", tag: "hmp" },
+      { day: "Sat", workout: "Off", type: "off" },
+      { day: "Sun", workout: "7–8 mile Easy Run", type: "" },
+    ]
+  },
+  {
+    num: 17, phase: "taper", label: "Taper — Race Week",
+    dates: "Oct 6–11",
+    days: [
+      { day: "Mon", workout: "Off", type: "off" },
+      { day: "Tue", workout: "6–7 miles: 2mi WU · 3×1k at HMP (2 min rest) · 1×1k at 10k pace · 2mi WD", type: "key", tag: "interval" },
+      { day: "Wed", workout: "2–4 mile Easy Run", type: "" },
+      { day: "Thu", workout: "Off", type: "off" },
+      { day: "Fri", workout: "5 miles: 2mi WU · 2mi at MP · 1mi WD", type: "key", tag: "mp" },
+      { day: "Sat", workout: "Off — travel, rest, carb load", type: "off" },
+      { day: "Sun", workout: "Off — shake out jog optional (1–2 miles easy)", type: "off" },
+    ]
+  },
+];
+
+const tagMap = {
+  mp: '<span class="tag tag-mp">MP</span>',
+  hmp: '<span class="tag tag-hmp">HMP</span>',
+  interval: '<span class="tag tag-interval">Intervals</span>',
+  long: '<span class="tag tag-long">Long Run</span>',
+  easy: '<span class="tag tag-easy">Easy</span>',
+};
+
+const phaseColors = {
+  build: 'phase-build',
+  specific: 'phase-specific',
+  taper: 'phase-taper',
+};
+
+const dotColors = {
+  build: 'phase-dot-build',
+  specific: 'phase-dot-specific',
+  taper: 'phase-dot-taper',
+};
+
+const container = document.getElementById('weeks');
+
+// ── Drag state ────────────────────────────────────────────────────────────────
+let dragSrc = null; // { weekIdx, orderIdx }
+
+function renderWeek(weekIdx) {
+  const week = weeks[weekIdx];
+  const ws = getWeekState(weekIdx, week.days.length);
+  const card = container.children[weekIdx];
+  const body = card.querySelector('.week-body');
+  body.innerHTML = '';
+
+  ws.order.forEach((dayDataIdx, orderPos) => {
+    const d = week.days[dayDataIdx];
+    const dayLabel = week.days[orderPos].day; // label always from position
+    const isDone = ws.done[dayDataIdx];
+    const tagHtml = d.tag ? tagMap[d.tag] : '';
+
+    const row = document.createElement('div');
+    row.className = `day-row${isDone ? ' completed' : ''}`;
+    row.draggable = true;
+    row.dataset.weekIdx = weekIdx;
+    row.dataset.orderPos = orderPos;
+
+    row.innerHTML = `
+      <div class="day-label">${dayLabel}</div>
+      <div class="drag-handle">⠿</div>
+      <div class="day-check">
+        <button class="check-btn${isDone ? ' done' : ''}" aria-label="Mark complete" data-day-idx="${dayDataIdx}"></button>
+      </div>
+      <div class="day-workout ${d.type === 'off' ? 'off' : ''} ${d.type === 'key' ? 'key' : ''}">${tagHtml}${d.workout}</div>
+    `;
+
+    // Check off
+    row.querySelector('.check-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const key = `w${weekIdx}`;
+      appState[key].done[dayDataIdx] = !appState[key].done[dayDataIdx];
+      saveState(appState);
+      renderWeek(weekIdx);
+    });
+
+    // Drag events
+    row.addEventListener('dragstart', (e) => {
+      dragSrc = { weekIdx, orderPos };
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      document.querySelectorAll('.day-row').forEach(r => r.classList.remove('drag-over'));
+    });
+
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.day-row').forEach(r => r.classList.remove('drag-over'));
+      if (dragSrc && (dragSrc.weekIdx !== weekIdx || dragSrc.orderPos !== orderPos)) {
+        row.classList.add('drag-over');
+      }
+    });
+
+    row.addEventListener('dragleave', () => {
+      row.classList.remove('drag-over');
+    });
+
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if (!dragSrc) return;
+
+      const srcWeekIdx = dragSrc.weekIdx;
+      const srcOrderPos = dragSrc.orderPos;
+      const dstWeekIdx = weekIdx;
+      const dstOrderPos = orderPos;
+
+      if (srcWeekIdx === dstWeekIdx && srcOrderPos === dstOrderPos) return;
+
+      const srcKey = `w${srcWeekIdx}`;
+      const dstKey = `w${dstWeekIdx}`;
+
+      // Swap only the workout content (order entries) at the two positions.
+      // Day labels are determined by position (0=Mon…6=Sun), so they never move.
+      const srcWorkout = appState[srcKey].order[srcOrderPos];
+      const dstWorkout = appState[dstKey].order[dstOrderPos];
+
+      appState[srcKey].order[srcOrderPos] = dstWorkout;
+      appState[dstKey].order[dstOrderPos] = srcWorkout;
+
+      // Swap done states so the checkmark travels with the workout
+      const srcDone = appState[srcKey].done[srcWorkout];
+      appState[srcKey].done[srcWorkout] = appState[dstKey].done[dstWorkout];
+      appState[dstKey].done[dstWorkout] = srcDone;
+
+      saveState(appState);
+      renderWeek(srcWeekIdx);
+      if (dstWeekIdx !== srcWeekIdx) renderWeek(dstWeekIdx);
+      dragSrc = null;
+    });
+
+    body.appendChild(row);
+  });
+}
+
+// ── Initial render ────────────────────────────────────────────────────────────
+weeks.forEach((week, i) => {
+  // Ensure state initialized
+  getWeekState(i, week.days.length);
+
+  const card = document.createElement('div');
+  card.className = `week-card ${phaseColors[week.phase] || ''}`;
+
+  card.innerHTML = `
+    <div class="week-header">
+      <div class="week-header-left">
+        <div class="week-num">Week ${week.num}</div>
+        <div class="week-phase-dot ${dotColors[week.phase] || ''}"></div>
+        <div>
+          <div class="week-title">${week.label}</div>
+          <div class="week-date">${week.dates}</div>
+        </div>
+      </div>
+      <div class="chevron">▼</div>
+    </div>
+    <div class="week-body"></div>
+  `;
+
+  card.querySelector('.week-header').addEventListener('click', () => {
+    card.classList.toggle('open');
+  });
+
+  container.appendChild(card);
+  renderWeek(i);
+});
+
+// Race day card
+const raceCard = document.createElement('div');
+raceCard.className = 'week-card race-week';
+raceCard.innerHTML = `
+  <div class="week-header" style="cursor:default;">
+    <div class="week-header-left">
+      <div class="week-num" style="color:rgba(255,255,255,0.5)">Oct 11</div>
+      <div class="week-phase-dot" style="background:var(--accent)"></div>
+      <div>
+        <div class="week-title">🏁 Race Day — Chicago Marathon</div>
+        <div class="week-date" style="color:rgba(255,255,255,0.5)">Goal: 3:30–3:35</div>
+      </div>
+    </div>
+  </div>
+`;
+container.appendChild(raceCard);
+
+// Auto-open current week (week 1)
+container.children[0].classList.add('open');
+</script>
+</body>
+</html>
