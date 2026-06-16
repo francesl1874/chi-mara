@@ -273,12 +273,17 @@
 
   .day-row {
     display: grid;
-    grid-template-columns: 80px 20px 36px 1fr;
+    grid-template-columns: 92px 20px 36px 1fr;
     border-bottom: 1px solid var(--border);
     min-height: 44px;
   }
 
   .day-row:last-child { border-bottom: none; }
+
+  .day-row.today {
+    background: var(--accent-light);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
 
   .day-label {
     font-family: var(--mono);
@@ -288,8 +293,17 @@
     color: var(--ink-soft);
     padding: 12px 10px 12px 16px;
     display: flex;
+    flex-direction: column;
     align-items: flex-start;
+    gap: 2px;
     padding-top: 13px;
+  }
+
+  .day-date {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    opacity: 0.8;
   }
 
   .day-workout {
@@ -788,6 +802,26 @@ const container = document.getElementById('weeks');
 // ── Drag state ────────────────────────────────────────────────────────────────
 let dragSrc = null; // { weekIdx, orderIdx }
 
+const PLAN_START = new Date(2026, 5, 16); // Mon Jun 16, 2026 (Mon = position 0)
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function dayDate(weekNum, orderPos) {
+  const d = new Date(PLAN_START);
+  d.setDate(d.getDate() + (weekNum - 1) * 7 + orderPos);
+  return d;
+}
+
+function fmtDate(d) {
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.getFullYear() === t.getFullYear() &&
+         d.getMonth() === t.getMonth() &&
+         d.getDate() === t.getDate();
+}
+
 function renderWeek(weekIdx) {
   const week = weeks[weekIdx];
   const ws = getWeekState(weekIdx, week.days.length);
@@ -798,17 +832,18 @@ function renderWeek(weekIdx) {
   ws.order.forEach((dayDataIdx, orderPos) => {
     const d = week.days[dayDataIdx];
     const dayLabel = week.days[orderPos].day; // label always from position
+    const dDate = dayDate(week.num, orderPos); // date always from position
     const isDone = ws.done[dayDataIdx];
     const tagHtml = d.tag ? tagMap[d.tag] : '';
 
     const row = document.createElement('div');
-    row.className = `day-row${isDone ? ' completed' : ''}`;
+    row.className = `day-row${isDone ? ' completed' : ''}${isToday(dDate) ? ' today' : ''}`;
     row.draggable = true;
     row.dataset.weekIdx = weekIdx;
     row.dataset.orderPos = orderPos;
 
     row.innerHTML = `
-      <div class="day-label">${dayLabel}</div>
+      <div class="day-label">${dayLabel}<span class="day-date">${fmtDate(dDate)}</span></div>
       <div class="drag-handle">⠿</div>
       <div class="day-check">
         <button class="check-btn${isDone ? ' done' : ''}" aria-label="Mark complete" data-day-idx="${dayDataIdx}"></button>
