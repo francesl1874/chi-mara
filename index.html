@@ -486,6 +486,47 @@
     line-height: 1.6;
     border: 1px solid var(--border);
   }
+
+  /* SYNC / SHARE */
+  .sync-bar {
+    margin: 16px 16px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sync-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sync-msg {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+
+  .share-fallback {
+    display: none;
+    flex: 1 1 100%;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+  }
 </style>
 </head>
 <body>
@@ -509,6 +550,12 @@
     <div class="stat-label">Peak Miles</div>
     <div class="stat-value">~45 mpw</div>
   </div>
+</div>
+
+<div class="sync-bar">
+  <button id="shareBtn" class="sync-btn">🔗 Copy sync link</button>
+  <span id="syncMsg" class="sync-msg">Copy a link to carry this device's progress (check-offs, notes, day order) to another device.</span>
+  <input id="shareFallback" class="share-fallback" readonly aria-label="Sync link">
 </div>
 
 <div class="pace-section">
@@ -572,6 +619,48 @@ function saveState(state) {
 
 // state shape: { "w1": { order: [0,1,2,3,4,5,6], done: [false,...], notes: ["",...] }, ... }
 let appState = loadState();
+
+// ── Cross-device sharing via URL ──────────────────────────────────────────────
+// Full state is packed into the link's #s= fragment (URL-safe base64 of JSON).
+// The fragment stays client-side — it is never sent to the server.
+function encodeState(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function decodeState(str) {
+  let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  const bin = atob(b64);
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function shareLink() {
+  return location.origin + location.pathname + '#s=' + encodeState(appState);
+}
+
+// On load: if the URL carries shared state, offer to load it over local state.
+(function importFromUrl() {
+  const m = location.hash.match(/^#s=(.+)$/);
+  if (!m) return;
+  let incoming;
+  try { incoming = decodeState(m[1]); } catch { return; }
+  if (!incoming || typeof incoming !== 'object') return;
+  const hasLocal = Object.keys(appState).length > 0;
+  const ok = !hasLocal || confirm(
+    'Load shared progress from this link?\n\n' +
+    'This replaces the check-offs, notes, and day order saved on THIS device.'
+  );
+  if (ok) {
+    appState = incoming;
+    saveState(appState);
+  }
+  // Drop the fragment so a refresh doesn't re-prompt or re-import.
+  history.replaceState(null, '', location.pathname + location.search);
+})();
 
 function getWeekState(weekIdx, dayCount) {
   const key = `w${weekIdx}`;
@@ -1046,6 +1135,26 @@ container.appendChild(raceCard);
 
 // Auto-open current week (week 1)
 container.children[0].classList.add('open');
+
+// ── Share button ──────────────────────────────────────────────────────────────
+const shareBtn = document.getElementById('shareBtn');
+const syncMsg = document.getElementById('syncMsg');
+const shareFallback = document.getElementById('shareFallback');
+
+shareBtn.addEventListener('click', async () => {
+  const link = shareLink();
+  try {
+    await navigator.clipboard.writeText(link);
+    syncMsg.textContent = '✓ Link copied — open it on your other device to load this progress there.';
+    shareFallback.style.display = 'none';
+  } catch {
+    shareFallback.value = link;
+    shareFallback.style.display = 'block';
+    shareFallback.focus();
+    shareFallback.select();
+    syncMsg.textContent = 'Copy this link and open it on your other device:';
+  }
+});
 </script>
 </body>
 </html>
