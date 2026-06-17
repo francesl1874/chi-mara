@@ -273,7 +273,7 @@
 
   .day-row {
     display: grid;
-    grid-template-columns: 92px 20px 36px 1fr;
+    grid-template-columns: 92px 26px 36px 1fr;
     border-bottom: 1px solid var(--border);
     min-height: 44px;
   }
@@ -425,19 +425,36 @@
     border-top: 2px solid var(--build);
   }
 
-  .drag-handle {
-    width: 20px;
+  .day-move {
     display: flex;
-    align-items: flex-start;
-    padding-top: 15px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    opacity: 0.2;
-    font-size: 11px;
-    cursor: grab;
+    gap: 3px;
+    padding: 8px 0;
   }
 
-  .day-row:hover .drag-handle { opacity: 0.5; }
+  .move-btn {
+    width: 22px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 4px;
+    color: var(--ink-soft);
+    font-size: 8px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .move-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .move-btn:active { background: var(--bg); }
+  .move-btn:disabled { opacity: 0.25; cursor: default; }
 
   .tag {
     display: inline-block;
@@ -527,6 +544,129 @@
     background: var(--surface);
     color: var(--ink);
   }
+
+  /* WEEK MILEAGE CHIP */
+  .week-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .week-miles {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 7px;
+    white-space: nowrap;
+  }
+
+  .race-week .week-miles {
+    color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  /* MILEAGE CHART */
+  .chart-section {
+    margin: 16px 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .chart-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .chart-toggle .chevron { transition: transform 0.2s; }
+  .chart-section.open .chart-toggle .chevron { transform: rotate(180deg); }
+
+  .chart-body { display: none; padding: 0 14px 18px; }
+  .chart-section.open .chart-body { display: block; }
+
+  .chart-summary {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .chart-summary strong { color: var(--ink); font-weight: 600; }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 150px;
+    padding-top: 16px;
+  }
+
+  .chart-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+
+  .chart-bar-wrap {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .chart-bar {
+    width: 72%;
+    max-width: 20px;
+    border-radius: 3px 3px 0 0;
+    position: relative;
+  }
+
+  .chart-bar.b-build { background: var(--build); }
+  .chart-bar.b-specific { background: var(--specific); }
+  .chart-bar.b-taper { background: var(--taper); }
+
+  .chart-bar-val {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .chart-xlabel {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-soft);
+    margin-top: 5px;
+  }
+
+  .chart-col.current .chart-bar { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .chart-col.current .chart-bar-val,
+  .chart-col.current .chart-xlabel { color: var(--ink); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -597,6 +737,14 @@
   <div class="legend-item"><div class="legend-dot phase-dot-build"></div> Building Phase</div>
   <div class="legend-item"><div class="legend-dot phase-dot-specific"></div> Marathon Specific</div>
   <div class="legend-item"><div class="legend-dot phase-dot-taper"></div> Taper</div>
+</div>
+
+<div class="chart-section" id="chartSection">
+  <button class="chart-toggle" id="chartToggle">
+    <span>📊 Mileage · Week over Week</span>
+    <span class="chevron">▼</span>
+  </button>
+  <div class="chart-body" id="chartBody"></div>
 </div>
 
 <div class="weeks" id="weeks"></div>
@@ -958,6 +1106,58 @@ function isToday(d) {
          d.getDate() === t.getDate();
 }
 
+// ── Mileage ─────────────────────────────────────────────────────────────────
+// Workouts encode their total distance in the leading text, e.g.
+// "8 miles: 2mi WU…" → 8, "6–7 mile Aerobic Run" → 6–7, "Off" / "Cross…" → 0.
+function parseMiles(workout) {
+  const m = String(workout).match(/^(\d+)(?:\s*[–—-]\s*(\d+))?\s*mile/i);
+  if (!m) return { low: 0, high: 0 };
+  const low = parseInt(m[1], 10);
+  const high = m[2] ? parseInt(m[2], 10) : low;
+  return { low, high };
+}
+
+function weekMilesTotal(week) {
+  let low = 0, high = 0;
+  week.days.forEach(d => { const m = parseMiles(d.workout); low += m.low; high += m.high; });
+  return { low, high, mid: (low + high) / 2 };
+}
+
+function fmtMiles(t) {
+  return t.low === t.high ? `${t.low}` : `${t.low}–${t.high}`;
+}
+
+function currentWeekIdx() {
+  const wk = Math.floor((new Date() - PLAN_START) / (7 * 24 * 3600 * 1000));
+  return (wk >= 0 && wk < weeks.length) ? wk : -1;
+}
+
+// Swap a workout with its neighbor (same week). Mirrors the drag-swap so the
+// checkmark and note travel exactly as they do when dragging.
+function moveDay(weekIdx, orderPos, delta) {
+  const week = weeks[weekIdx];
+  const target = orderPos + delta;
+  if (target < 0 || target >= week.days.length) return;
+
+  const st = appState[`w${weekIdx}`];
+  const srcWorkout = st.order[orderPos];
+  const dstWorkout = st.order[target];
+
+  st.order[orderPos] = dstWorkout;
+  st.order[target] = srcWorkout;
+
+  const d = st.done[srcWorkout];
+  st.done[srcWorkout] = st.done[dstWorkout];
+  st.done[dstWorkout] = d;
+
+  const n = st.notes[srcWorkout];
+  st.notes[srcWorkout] = st.notes[dstWorkout];
+  st.notes[dstWorkout] = n;
+
+  saveState(appState);
+  renderWeek(weekIdx);
+}
+
 function renderWeek(weekIdx) {
   const week = weeks[weekIdx];
   const ws = getWeekState(weekIdx, week.days.length);
@@ -971,11 +1171,8 @@ function renderWeek(weekIdx) {
     const dDate = dayDate(week.num, orderPos); // date always from position
     const isDone = ws.done[dayDataIdx];
     const tagHtml = d.tag ? tagMap[d.tag] : '';
-    const isOff = d.type === 'off';
     const noteVal = ws.notes[dayDataIdx] || '';
-    const noteHtml = isOff
-      ? `<input type="text" class="day-note-input" placeholder="＋ Add a note…" value="${escapeHtml(noteVal)}" data-day-idx="${dayDataIdx}">`
-      : '';
+    const noteHtml = `<input type="text" class="day-note-input" placeholder="＋ Add a note…" value="${escapeHtml(noteVal)}" data-day-idx="${dayDataIdx}">`;
 
     const row = document.createElement('div');
     row.className = `day-row${isDone ? ' completed' : ''}${isToday(dDate) ? ' today' : ''}`;
@@ -985,7 +1182,10 @@ function renderWeek(weekIdx) {
 
     row.innerHTML = `
       <div class="day-label">${dayLabel}<span class="day-date">${fmtDate(dDate)}</span></div>
-      <div class="drag-handle">⠿</div>
+      <div class="day-move">
+        <button class="move-btn move-up" aria-label="Move workout up"${orderPos === 0 ? ' disabled' : ''}>▲</button>
+        <button class="move-btn move-down" aria-label="Move workout down"${orderPos === week.days.length - 1 ? ' disabled' : ''}>▼</button>
+      </div>
       <div class="day-check">
         <button class="check-btn${isDone ? ' done' : ''}" aria-label="Mark complete" data-day-idx="${dayDataIdx}"></button>
       </div>
@@ -1007,6 +1207,16 @@ function renderWeek(weekIdx) {
       noteInput.addEventListener('focus', () => { row.draggable = false; });
       noteInput.addEventListener('blur', () => { row.draggable = true; });
     }
+
+    // Reorder via up/down buttons (mobile-friendly alternative to dragging)
+    row.querySelector('.move-up').addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveDay(weekIdx, orderPos, -1);
+    });
+    row.querySelector('.move-down').addEventListener('click', (e) => {
+      e.stopPropagation();
+      moveDay(weekIdx, orderPos, 1);
+    });
 
     // Check off
     row.querySelector('.check-btn').addEventListener('click', (e) => {
@@ -1093,6 +1303,8 @@ weeks.forEach((week, i) => {
   const card = document.createElement('div');
   card.className = `week-card ${phaseColors[week.phase] || ''}`;
 
+  const wt = weekMilesTotal(week);
+
   card.innerHTML = `
     <div class="week-header">
       <div class="week-header-left">
@@ -1103,7 +1315,10 @@ weeks.forEach((week, i) => {
           <div class="week-date">${weekRange(week.num)}</div>
         </div>
       </div>
-      <div class="chevron">▼</div>
+      <div class="week-header-right">
+        <div class="week-miles">${fmtMiles(wt)} mi</div>
+        <div class="chevron">▼</div>
+      </div>
     </div>
     <div class="week-body"></div>
   `;
@@ -1135,6 +1350,37 @@ container.appendChild(raceCard);
 
 // Auto-open current week (week 1)
 container.children[0].classList.add('open');
+
+// ── Mileage chart ─────────────────────────────────────────────────────────────
+const chartSection = document.getElementById('chartSection');
+const chartToggle = document.getElementById('chartToggle');
+const chartBody = document.getElementById('chartBody');
+
+function renderChart() {
+  const totals = weeks.map(w => ({ ...weekMilesTotal(w), num: w.num, phase: w.phase }));
+  const maxMid = Math.max(...totals.map(t => t.mid), 1);
+  const cur = currentWeekIdx();
+  const grand = totals.reduce((s, t) => ({ low: s.low + t.low, high: s.high + t.high }), { low: 0, high: 0 });
+  const peak = totals.reduce((a, b) => (b.mid > a.mid ? b : a));
+
+  const bars = totals.map((t, i) => {
+    const h = Math.max(3, Math.round((t.mid / maxMid) * 100));
+    return `<div class="chart-col${i === cur ? ' current' : ''}" title="Week ${t.num}: ${fmtMiles(t)} mi">
+      <div class="chart-bar-wrap"><div class="chart-bar b-${t.phase}" style="height:${h}%"><span class="chart-bar-val">${Math.round(t.mid)}</span></div></div>
+      <div class="chart-xlabel">${t.num}</div>
+    </div>`;
+  }).join('');
+
+  chartBody.innerHTML =
+    `<div class="chart-summary"><strong>${fmtMiles(grand)} mi</strong> total · peak <strong>${fmtMiles(peak)} mi</strong> (Week ${peak.num})</div>
+     <div class="chart-bars">${bars}</div>`;
+}
+
+chartToggle.addEventListener('click', () => {
+  const opening = !chartSection.classList.contains('open');
+  chartSection.classList.toggle('open');
+  if (opening) renderChart();
+});
 
 // ── Share button ──────────────────────────────────────────────────────────────
 const shareBtn = document.getElementById('shareBtn');
